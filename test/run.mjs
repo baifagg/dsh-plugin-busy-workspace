@@ -123,14 +123,59 @@ check("no hardcoded palette outside the documented fallbacks", () => {
   const css = clientSource.match(/const CSS = `([\s\S]*?)`;/);
   assert.ok(css !== null, "stylesheet literal missing");
   const body = css[1];
-  // Every hex literal must sit inside a var() fallback, never as a bare value.
-  const hexes = body.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
-  for (const hex of hexes) {
-    assert.ok(
-      new RegExp(`var\\(--[a-z-]+,\\s*${hex}\\)`).test(body),
-      `${hex} is not inside a token fallback`,
-    );
+  // Every colour literal must be the fallback of a custom-property definition,
+  // e.g. `--bw-running: var(--dsw-static-deepseek-450, #5686fe);`. A literal
+  // anywhere else is a hardcoded colour that would not follow the theme.
+  const definitions = [...body.matchAll(/^\s*(--[a-z-]+):\s*([^;]+);/gm)];
+  const allowed = new Set();
+  for (const [, , value] of definitions) {
+    for (const hex of value.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []) allowed.add(hex);
   }
+  // Colour keywords that are legitimate in a fallback position.
+  for (const keyword of ["transparent", "currentColor", "inherit"]) allowed.add(keyword);
+
+  const literals = [...body.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => m[0]);
+  for (const hex of literals) {
+    assert.ok(allowed.has(hex), `${hex} is not a custom-property fallback`);
+  }
+  // The declarations that define the palette must actually carry a fallback, so
+  // a missing theme token degrades to a known colour rather than to nothing.
+  assert.match(body, /--bw-running:\s*var\(--dsw-static-deepseek-450,\s*#[0-9a-fA-F]{6}\)/);
+  assert.match(body, /--bw-settle:\s*var\(--dsw-alias-state-success-primary,\s*#[0-9a-fA-F]{6}\)/);
+});
+
+check("the running colour is the token the status dot uses", () => {
+  const css = clientSource.match(/const CSS = `([\s\S]*?)`;/)[1];
+  // The dot's `ongoing` matrix is painted with this exact token. Sharing it is
+  // what makes the row highlight and the dot read as one signal.
+  assert.match(css, /--bw-running:\s*var\(--dsw-static-deepseek-450/);
+  // The near-black brand token must not be reachable as a fallback.
+  assert.ok(!/var\(--dsw-alias-brand-primary/.test(css), "--dsw-alias-brand-primary resolves to near-black");
+});
+
+check("the selected surface outranks the running fill", () => {
+  const css = clientSource.match(/const CSS = `([\s\S]*?)`;/)[1];
+  // A row that is both selected and running must keep the official selected
+  // surface, not the running fill.
+  const selectedRule = css.match(
+    /\[class\*="_sessionRow"\]\[data-busy-session="true"\]\[class\*="_selected"\]\s*\{([^}]*)\}/,
+  );
+  assert.ok(selectedRule !== null, "expected a selected-and-running rule");
+  assert.match(selectedRule[1], /background:\s*var\(--dsw-alias-interactive-bg-hover\)/);
+  assert.ok(
+    !/color-mix\([^)]*--bw-running[^)]*\)\s*;?\s*$/.test(selectedRule[1].match(/background:[^;]*/)?.[0] ?? ""),
+    "the selected background must not be a running tint",
+  );
+});
+
+check("the running fill stays below the selected surface's weight", () => {
+  const css = clientSource.match(/const CSS = `([\s\S]*?)`;/)[1];
+  const fill = css.match(/--bw-fill-alpha:\s*calc\(var\(--bw-intensity\)\s*\*\s*([\d.]+)(%?)\)/);
+  assert.ok(fill !== null, "expected a fill alpha definition");
+  const alpha = fill[2] === "%" ? Number(fill[1]) / 100 : Number(fill[1]);
+  // The official selected surface is ~6% alpha. A running fill at or above it
+  // would make a running row look more selected than the selected row.
+  assert.ok(alpha <= 0.08, `fill alpha ${alpha} would out-shout the selected surface`);
 });
 
 check("the running frame is drawn without changing the box model", () => {

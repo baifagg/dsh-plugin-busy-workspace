@@ -49,25 +49,29 @@ When a session stops running, its row plays one short green settle pulse and the
 
 ## Theme-adaptive by design
 
-Every colour is read from the active theme's own `--dsw-alias-*` tokens. Nothing is hardcoded, which means one stylesheet works across the built-in light and dark themes and across community theme packs (Catppuccin, Nord, Dracula, Tokyo Night, Gruvbox, and any other theme that defines the standard token set).
+Every colour is read from the active theme's own tokens. Nothing is hardcoded, which means one stylesheet works across the built-in light and dark themes and across community theme packs (Catppuccin, Nord, Dracula, Tokyo Night, Gruvbox, and any other theme that defines the standard token set).
 
 | Role | Token |
 | --- | --- |
-| Running accent | `--dsw-alias-state-business-primary`, falling back to `--dsw-alias-brand-primary` |
+| Running accent | `--dsw-static-deepseek-450` |
 | Settle colour | `--dsw-alias-state-success-primary` |
 | Row title | `--dsw-alias-label-primary` |
-| Hover surface | `--dsw-alias-interactive-bg-hover` |
+| Selected surface | `--dsw-alias-interactive-bg-hover` |
 
-The plugin deliberately picks the **semantic state tokens** rather than brand tokens. A brand token turns orange when your theme's brand is orange, which would read as a warning rather than as activity. The state tokens keep their meaning across every theme.
+The running accent is the exact token the status dot paints its `ongoing` state with, so the row highlight and the dot read as one signal rather than as two blues that almost match. Sharing the dot's token is also what keeps the plugin inside the theme's own vocabulary: a theme that retunes the dot retunes the highlight with it.
 
-Transparency is composed with `color-mix()` against the theme's own surface, so the tint always sits correctly on light and dark backgrounds alike.
+Transparency is composed with `color-mix()` against the theme's own surface, so the tint sits correctly on light and dark backgrounds alike. In the default themes the token resolves to `#5686fe` on light and a lighter blue on dark, without the plugin knowing either value.
+
+### Hierarchy
+
+The selected row is the user's current position and outranks every status hint. The official selected surface is a roughly 6%-alpha neutral, so the running treatment is deliberately edge-weighted — a leading bar, a thin ring, and a fill held below 6% — and the fill is dropped entirely on a row that is both selected and running, leaving that row's official surface at full strength. Without that ordering a saturated running fill makes the row being worked on look more selected than the row actually selected.
 
 ## Install
 
 ```sh
 # From your dsh profile directory
 cd ~/.dsh/profiles/web
-pnpm add github:yangx/dsh-plugin-busy-workspace
+pnpm add github:baifagg/dsh-plugin-busy-workspace
 ```
 
 Then register the bundle in that profile's `package.json`:

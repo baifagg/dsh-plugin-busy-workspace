@@ -47,21 +47,25 @@ DeepSeek Harness（`dsh`）Web 界面插件：高亮正在工作的会话，并�
 
 | 用途 | 取用变量 |
 | --- | --- |
-| 运行中强调色 | `--dsw-alias-state-business-primary`，回退到 `--dsw-alias-brand-primary` |
+| 运行中强调色 | `--dsw-static-deepseek-450` |
 | 完成提示色 | `--dsw-alias-state-success-primary` |
 | 行标题 | `--dsw-alias-label-primary` |
-| 悬停底色 | `--dsw-alias-interactive-bg-hover` |
+| 选中态底色 | `--dsw-alias-interactive-bg-hover` |
 
-插件刻意选用**语义状态色**而不是品牌色。品牌变量会随主题的品牌色变化——如果你的主题品牌色是橙色，用作"正在运行"就会读成警告而不是活动。状态语义色在任何主题下都保持含义。
+运行中强调色用的正是状态点绘制 `ongoing` 时的同一个变量，所以行高亮和状态点读起来是同一个信号，而不是两种几乎一样、又对不上的蓝。共用状态点的变量也意味着插件留在主题自己的词汇表里：主题调整了状态点，高亮会跟着一起调。
 
-透明度用 `color-mix()` 与主题自身的表面色合成，所以浅色和深色背景下色块都落在正确的位置。
+透明度用 `color-mix()` 与主题自身的表面色合成，所以浅色和深色背景下色块都落在正确的位置。默认主题里这个变量在浅色下解析为 `#5686fe`、在深色下解析为更亮的蓝，而插件并不知道这两个值。
+
+### 层级
+
+选中行是用户当前所在的位置，优先级高于任何状态提示。官方选中态是一层约 6% 透明度的中性色，所以运行中的处理刻意**以边缘为主**——起始边竖条、细边框环，填充控制在 6% 以下；当一行同时是选中且运行时，填充完全让位，保持官方选中底色原样。没有这个次序，一个饱和度高的运行态填充会让「正在跑的那行」看起来比「你选中的那行」更像被选中。
 
 ## 安装
 
 ```sh
 # 进入你的 dsh profile 目录
 cd ~/.dsh/profiles/web
-pnpm add github:yangx/dsh-plugin-busy-workspace
+pnpm add github:baifagg/dsh-plugin-busy-workspace
 ```
 
 然后在该 profile 的 `package.json` 里注册 bundle：
