@@ -146,4 +146,4 @@ DeepSeek Harness · dsh plugin · dsh-plugin · cordis plugin · DeepSeek Web GU
 
 ## License
 
-MIT © 2026 yangx
+MIT © 2026 baifagg
