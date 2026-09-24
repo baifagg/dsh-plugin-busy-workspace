@@ -1,0 +1,61 @@
+{
+  "name": "dsh-plugin-busy-workspace",
+  "version": "1.0.0",
+  "description": "Highlight busy workspaces and running sessions in the DeepSeek Harness (dsh) Web GUI sidebar — pin workspaces with active sessions to the top and mark running sessions with theme-adaptive color.",
+  "type": "module",
+  "license": "MIT",
+  "author": "yangx",
+  "keywords": [
+    "dsh",
+    "deepseek",
+    "deepseek-harness",
+    "dsh-plugin",
+    "cordis",
+    "sidebar",
+    "workspace",
+    "session",
+    "running",
+    "busy",
+    "status",
+    "indicator",
+    "highlight",
+    "pin",
+    "sort",
+    "theme",
+    "web-ui",
+    "productivity",
+    "monitoring"
+  ],
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [],
+      "platform": "web"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/run.mjs"
+  }
+}

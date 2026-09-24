@@ -1,0 +1,5 @@
+# dsh-plugin-busy-workspace bundle declaration: insert into the host
+# composite's dsh-plugin-busy-workspace plugin line.
+- insert:
+    - id: dsh-plugin-busy-workspace
+      name: dsh-plugin-busy-workspace
