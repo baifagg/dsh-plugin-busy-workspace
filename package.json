@@ -1,30 +1,33 @@
 {
   "name": "dsh-plugin-busy-workspace",
   "version": "1.0.0",
-  "description": "Highlight busy workspaces and running sessions in the DeepSeek Harness (dsh) Web GUI sidebar — pin workspaces with active sessions to the top and mark running sessions with theme-adaptive color.",
+  "description": "Highlights running sessions and pins workspaces with active sessions to the top of the dsh Web GUI sidebar.",
   "type": "module",
   "license": "MIT",
-  "author": "yangx",
+  "author": "baifagg",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baifagg/dsh-plugin-busy-workspace.git"
+  },
+  "homepage": "https://github.com/baifagg/dsh-plugin-busy-workspace#readme",
+  "bugs": {
+    "url": "https://github.com/baifagg/dsh-plugin-busy-workspace/issues"
+  },
   "keywords": [
     "dsh",
+    "dsh-plugin",
     "deepseek",
     "deepseek-harness",
-    "dsh-plugin",
     "cordis",
+    "cordis-plugin",
     "sidebar",
     "workspace",
     "session",
     "running",
-    "busy",
-    "status",
-    "indicator",
-    "highlight",
-    "pin",
-    "sort",
-    "theme",
+    "session-indicator",
+    "status-indicator",
     "web-ui",
-    "productivity",
-    "monitoring"
+    "theme-adaptive"
   ],
   "main": "lib/index.js",
   "exports": {
@@ -41,6 +44,7 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
+    "screenshots.json",
     "LICENSE"
   ],
   "dsh": {
@@ -50,6 +54,14 @@
     "client": {
       "inject": [],
       "platform": "web"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.0-0 <5.0.0-0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
     }
   },
   "engines": {

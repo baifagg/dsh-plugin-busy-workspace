@@ -1,12 +1,18 @@
 # dsh-plugin-busy-workspace
 
-**Know which workspace is working, at a glance.**
+**Shows which workspace is working, in the sidebar.**
 
 A DeepSeek Harness (`dsh`) Web GUI plugin that highlights running sessions and pins busy workspaces to the top of the sidebar.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![dsh plugin](https://img.shields.io/badge/dsh-plugin-4d6bfe.svg)](https://github.com/topics/dsh-plugin)
 [![theme aware](https://img.shields.io/badge/theme-adaptive-16a34a.svg)](#theme-adaptive-by-design)
+
+---
+
+![Sidebar with a busy workspace pinned above the rest of the list](assets/screenshot-1.png)
+
+*The plugin's stylesheet applied to a sidebar-shaped list. The frame, tint, pinning, and settle animation shown are the plugin's own CSS driven by real `data-state` values; the surrounding list is a fixture, because the sidebar's real contents are per-installation.*
 
 ---
 
@@ -33,9 +39,9 @@ Three focused changes, all in the sidebar, all driven by the state the Harness a
 
 A workspace containing a running session is lifted above the rest of the list. The move is presentational only — your manually dragged workspace order is never rewritten, so when the last session in a workspace finishes, the list quietly returns to the order you set.
 
-### 2. Running sessions get a real visual identity
+### 2. Running sessions get a distinct row
 
-The running session row gets an accent frame, a tinted background, an accent-coloured bold title, and a slow breathing bar on its leading edge. You can identify it from across the room without reading a single word.
+The running session row gets an accent frame, a tinted background, an accent-coloured bold title, and a slow breathing bar on its leading edge. The state is readable without reading the title.
 
 ### 3. You see the moment a session finishes
 
@@ -116,6 +122,12 @@ The plugin reads `data-state` from the status dot the Harness already renders on
 Workspace lifting uses CSS `order` on the flex list column. Reordering nodes directly would fight React; an `order` value is a purely presentational hint the renderer never reads back.
 
 Motion respects `prefers-reduced-motion`: users who ask for less motion keep every state indication and lose only the movement.
+
+## Verification
+
+`npm test` runs 24 checks over both halves with no browser and no Harness: settings normalisation on the Host side, and the module, selector, styling, and runtime contracts on the client side. The styling checks assert the invariants stated above — no bare hex outside a token fallback, no `border` on the running row, reduced motion keeps the states — so a regression in the reasoning is caught even when the DOM shape is unchanged.
+
+The client half is also exercised in a real Web GUI: the module is loaded through the official `__ModuleLoader__` contract, `apply()` runs against a stub context, and the observer is driven with real `data-state="ongoing"` → `"done"` transitions, asserting that the workspace mark, the row mark, and the settle mark are set and cleared in that order.
 
 ## Compatibility
 
