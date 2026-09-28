@@ -24,7 +24,7 @@ if (Test-Path $target) {
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 
 # 只复制 dsh 运行时需要的文件，测试与文档不必进 node_modules
-foreach ($item in @('lib', 'package.json', 'cordis.patch.yml', 'README.md', 'README.zh.md', 'LICENSE')) {
+foreach ($item in @('lib', 'assets', 'package.json', 'cordis.patch.yml', 'README.md', 'README.zh.md', 'screenshots.json', 'LICENSE')) {
     $from = Join-Path $source $item
     if (Test-Path $from) {
         Copy-Item $from -Destination $target -Recurse -Force

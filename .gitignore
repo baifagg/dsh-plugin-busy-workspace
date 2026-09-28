@@ -4,3 +4,7 @@ node_modules/
 Thumbs.db
 *.tmp
 .browser-ops/
+
+# 本地凭据 / 发布产物，绝不入库
+.npmrc
+*.tgz
