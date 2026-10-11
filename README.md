@@ -254,12 +254,14 @@ plain semver evaluator agree:
 | | |
 | --- | --- |
 | Harness | **0.1.5-rc.1 and later, below 0.3.0** — every release line from 0.1.5 to 0.2.1 is declared. 0.1.0–0.1.4 and 0.3.0+ are refused, loudly, with the profile's `skippedBundles` entry and the `dsh plugin allow-version …` command to override it deliberately |
+| Enforced from | `0.1.7-rc.1` — earlier builds contain no compatibility check at all, so there the declared range is a statement rather than a gate |
 | Verified end-to-end | `0.2.0-rc.2` — loaded and observed in a real Web GUI, both halves byte-identical to this tree |
-| Verified by contract tests | every declared line; `npm test` needs neither harness nor browser |
-| Declared, not yet exercised | `0.1.5-rc.*`, `0.1.6-alpha.1`, `0.1.7-alpha.*` / `-rc.*`, `0.2.0-rc.1`, `0.2.1-alpha.*` |
+| Contract-inspected | the status dot's `data-state` and all seven theme tokens are present in `0.1.5-rc.1`, so the floor is a real contract floor and not a guess |
+| Verified offline | every declared line — `npm test` needs neither harness nor browser |
+| Declared, not yet exercised live | `0.1.5-rc.*`, `0.1.6-alpha.*`, `0.1.7-alpha.*` / `-rc.*`, `0.2.0-rc.1`, `0.2.1-alpha.*` |
 | Surface | Web GUI sidebar (`sidebar.workspaces`) |
 | Themes | Any theme defining the standard `--dsw-alias-*` tokens |
-| Conflicts | None known. The plugin owns one style element and one settings file, and reads no other plugin's state |
+| Conflicts | None known. The plugin owns one style element and one settings file, reads no other plugin's state, and registers no UI seat |
 
 The full mechanism, the contract-by-contract dependency table, what each
 evidence level does and does not prove, and the procedure for adding a release
