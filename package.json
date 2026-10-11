@@ -1,7 +1,7 @@
 {
   "name": "dsh-plugin-busy-workspace",
-  "version": "1.0.0",
-  "description": "Highlights running sessions and pins workspaces with active sessions to the top of the dsh Web GUI sidebar.",
+  "version": "1.1.0",
+  "description": "Highlights the sessions that want your attention, and promotes their workspaces to the top of the dsh Web GUI sidebar.",
   "type": "module",
   "license": "MIT",
   "author": "baifagg",
@@ -24,6 +24,7 @@
     "workspace",
     "session",
     "running",
+    "unread",
     "session-indicator",
     "status-indicator",
     "web-ui",
@@ -42,13 +43,18 @@
   "files": [
     "lib",
     "assets",
+    "docs",
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
+    "CHANGELOG.md",
     "screenshots.json",
     "LICENSE"
   ],
   "dsh": {
+    "engines": {
+      "dsh": ">=0.1.5-rc.1 <0.1.6-0 || >=0.1.6-alpha.1 <0.1.7-0 || >=0.1.7-alpha.1 <0.2.0-0 || >=0.2.0-alpha.1 <0.2.1-0 || >=0.2.1-alpha.1 <0.3.0-0"
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
@@ -58,10 +64,14 @@
     }
   },
   "peerDependencies": {
-    "@deepseek-ai/cordis": ">=4.0.0-0 <5.0.0-0"
+    "@deepseek-ai/cordis": ">=4.0.0-0 <5.0.0-0",
+    "@deepseek-ai/dsh": ">=0.1.5-rc.1 <0.1.6-0 || >=0.1.6-alpha.1 <0.1.7-0 || >=0.1.7-alpha.1 <0.2.0-0 || >=0.2.0-alpha.1 <0.2.1-0 || >=0.2.1-alpha.1 <0.3.0-0"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh": {
       "optional": true
     }
   },

@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test · node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # `engines.node` says >=18; the upper end is what a current harness runs on.
+        node: ["18", "20", "22", "24"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run the contract suite
+        run: npm test
+
+  manifest:
+    name: manifest · installable by dsh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # What `dsh plugin add` needs before anything else: a `dsh.bundle` patch,
+      # the patch file it names, and a client half declared for the web platform.
+      - name: Check the dsh bundle declaration
+        run: |
+          node --input-type=module -e '
+          import { readFileSync, existsSync } from "node:fs";
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          const fail = (message) => { console.error("✗ " + message); process.exitCode = 1; };
+          const ok = (message) => console.log("✓ " + message);
+
+          const patch = pkg.dsh?.bundle?.patch;
+          if (typeof patch !== "string" || patch === "") fail("dsh.bundle.patch is missing — dsh.client alone is not installable");
+          else if (!existsSync(patch)) fail(`dsh.bundle.patch names ${patch}, which does not exist`);
+          else ok(`dsh.bundle.patch -> ${patch}`);
+
+          if (pkg.dsh?.client?.platform !== "web") fail("dsh.client.platform should be \"web\" for a Web GUI plugin");
+          else ok("dsh.client.platform -> web");
+
+          if (typeof pkg.main !== "string" || !existsSync(pkg.main)) fail("main does not resolve to a file");
+          else ok(`main -> ${pkg.main}`);
+
+          const dshPeer = Object.entries(pkg.peerDependencies ?? {}).find(([name]) => name === "@deepseek-ai/dsh" || name.startsWith("@deepseek-ai/dsh-"));
+          if (dshPeer === undefined) fail("no @deepseek-ai/dsh peer: the harness would never gate this plugin");
+          else ok(`harness gate declared: ${dshPeer[0]} ${dshPeer[1]}`);
+
+          const engines = pkg.dsh?.engines?.dsh;
+          if (engines !== undefined && dshPeer !== undefined && engines !== dshPeer[1]) {
+            fail("dsh.engines.dsh and the @deepseek-ai/dsh peer disagree — storefronts read the first, the harness reads the second");
+          } else if (engines !== undefined) ok("dsh.engines.dsh matches the peer range");
+          '
+
+      # The peer range must accept prerelease harness builds under BOTH evaluators:
+      # the harness checks with `includePrerelease: true`, a registry install does not.
+      - name: Check the peer range admits prereleases
+        run: |
+          npm install --no-save semver@7
+          node --input-type=module -e '
+          import { readFileSync } from "node:fs";
+          import semver from "semver";
+          const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+          const range = pkg.peerDependencies["@deepseek-ai/dsh"];
+          const supported = ["0.1.5-rc.1", "0.1.5-rc.3", "0.1.6-alpha.1", "0.1.7-alpha.2", "0.1.7-rc.2", "0.2.0-rc.2", "0.2.1-alpha.2"];
+          const refused = ["0.1.4-rc.1", "0.1.5-alpha.2", "0.3.0-rc.1"];
+          let bad = 0;
+          for (const v of supported) if (!semver.satisfies(v, range)) { console.error(`✗ ${v} should be supported but is not`); bad++; }
+          for (const v of refused) if (semver.satisfies(v, range)) { console.error(`✗ ${v} should be refused but is not`); bad++; }
+          if (bad > 0) process.exit(1);
+          console.log(`✓ range accepts ${supported.length} supported versions and refuses ${refused.length} others, under a plain semver evaluator too`);
+          '
