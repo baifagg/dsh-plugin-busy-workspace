@@ -117,12 +117,15 @@ DeepSeek Harness（`dsh`）Web 界面插件：高亮正在工作的会话，并�
 ## 安装
 
 ```sh
-dsh plugin --profile web add github:baifagg/dsh-plugin-busy-workspace
+dsh plugin --profile web add dsh-plugin-busy-workspace
 ```
 
-不会触发任何构建：`lib/` 是随仓库发布好的产物，没有运行时依赖，唯一的官方包是 profile 本来就提供的 peer。若不想从 git 拉取，也可以装 Release 页上的预构建 tarball：
+就这一条命令。插件已发布到 npm；不会触发任何构建——`lib/` 是随包发布好的产物，没有运行时依赖，唯一的官方包是 profile 本来就提供的 peer。
+
+不想走 npm 也可以，同一个包能从仓库或 Release 页上的预构建 tarball 装：
 
 ```sh
+dsh plugin --profile web add github:baifagg/dsh-plugin-busy-workspace
 dsh plugin --profile web add https://github.com/baifagg/dsh-plugin-busy-workspace/releases/latest/download/dsh-plugin-busy-workspace.tgz
 ```
 

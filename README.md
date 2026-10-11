@@ -123,15 +123,18 @@ The fill is deliberately only a backing: the signal is carried by things that ha
 ## Install
 
 ```sh
-dsh plugin --profile web add github:baifagg/dsh-plugin-busy-workspace
+dsh plugin --profile web add dsh-plugin-busy-workspace
 ```
 
-No build step runs: `lib/` ships built, there are no runtime dependencies, and
-the only official package involved is a peer the profile already provides. The
-plugin also installs from the prebuilt tarball on the release page, if you would
-rather not fetch from git:
+That is the whole command. It is published on npm, and no build step runs —
+`lib/` ships built, there are no runtime dependencies, and the only official
+package involved is a peer the profile already provides.
+
+Prefer not to go through npm? The same package installs from the repository or
+from the prebuilt tarball on the release page:
 
 ```sh
+dsh plugin --profile web add github:baifagg/dsh-plugin-busy-workspace
 dsh plugin --profile web add https://github.com/baifagg/dsh-plugin-busy-workspace/releases/latest/download/dsh-plugin-busy-workspace.tgz
 ```
 

@@ -7,6 +7,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Compatibility with individual DeepSeek Harness releases is tracked separately in
 [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) ([中文](docs/COMPATIBILITY.zh.md)).
 
+**Release checklist.** Every release must carry a tarball asset named
+`dsh-plugin-busy-workspace.tgz` — version-free on purpose, because the README,
+the marketplace entry and the storefronts point at
+`releases/latest/download/dsh-plugin-busy-workspace.tgz`, which resolves `latest`
+at request time but takes the filename literally. Forgetting the asset on one
+release 404s that link until the next one. The same artifact is published to npm
+from the same tagged tree, so all three channels ship identical bytes.
+
+## [1.1.1] — 2026-10-11
+
+### Changed
+
+- Documentation only; no behaviour change. The install section now leads with
+  the npm command (`dsh plugin --profile web add dsh-plugin-busy-workspace`),
+  which is what the plugin directories and storefronts tell users to run, and
+  keeps the git and release-tarball forms underneath it. Published so the README
+  inside the npm package matches the README in the repository.
+
 ## [1.1.0] — 2026-10-11
 
 The revision that stops treating "running" as the only state worth showing, and
