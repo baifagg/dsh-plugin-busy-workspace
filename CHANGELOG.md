@@ -15,6 +15,23 @@ at request time but takes the filename literally. Forgetting the asset on one
 release 404s that link until the next one. The same artifact is published to npm
 from the same tagged tree, so all three channels ship identical bytes.
 
+## [Unreleased]
+
+### Changed
+
+- **The screenshots are now generated from the code they document.**
+  `assets/screenshot-1.png` and `assets/screenshot-2.png` had not been re-taken
+  since before the five attention phases shipped, so the project page was still
+  showing the single-state version: no urgency ranking, no workspace badges, no
+  subagent chip, no selection hue. Both images are re-captured from the current
+  stylesheet and the current `paint()`.
+- `scripts/capture-screenshots.mjs` now produces them by reading the CSS and the
+  functions out of `lib/client.js` itself and driving a fixture sidebar with the
+  real `paint()`. Re-running it after an edit is the whole update procedure, so
+  the pictures can no longer silently fall behind the code. The second image is
+  the default dark theme; workspace names in the published images are blurred,
+  and the Chinese README now carries both.
+
 ## [1.1.1] — 2026-10-11
 
 ### Changed

@@ -10,9 +10,9 @@ A DeepSeek Harness (`dsh`) Web GUI plugin that highlights running sessions and p
 
 ---
 
-![Sidebar with a busy workspace pinned above the rest of the list](assets/screenshot-1.png)
+![Five attention phases in one list, ranked: waiting, running, finished-unread, seen, and a quiet run marked but not promoted](assets/screenshot-1.png)
 
-*The plugin's stylesheet applied to a sidebar-shaped list. The frame, tint, pinning, and settle animation shown are the plugin's own CSS driven by real `data-state` values; the surrounding list is a fixture, because the sidebar's real contents are per-installation.*
+*One list, five phases, ranked by urgency: waiting (amber) first, then running (blue, carrying its subagent chip), then finished-unread (green), then seen — the selected row, in the plugin's own violet — and last a run that went quiet (red), marked but deliberately not promoted. Every bar, tint, ring and badge here is the plugin's own CSS, driven by its own `paint()` over real `data-state` values. The list contents are a fixture and the workspace names are blurred, because a sidebar's real contents are per-installation; regenerate with `node scripts/capture-screenshots.mjs`.*
 
 ---
 
@@ -75,6 +75,10 @@ So the plugin's rule is: **promotion decays, it does not snap.**
 When a session stops running, its row plays one short green settle pulse and then returns to normal. You learn that a task completed without watching it.
 
 ## Theme-adaptive by design
+
+![The same five phases under the default dark theme](assets/screenshot-2.png)
+
+*The same stylesheet on the default dark theme. Nothing is restated for it and nothing has to be kept in sync, because the plugin defines no colours of its own.*
 
 Every colour is read from the active theme's own `--dsw-alias-*` / `--dsw-static-*` tokens. Nothing is hardcoded, which means one stylesheet works across the built-in light and dark themes and across community theme packs (Catppuccin, Nord, Dracula, Tokyo Night, Gruvbox, and any other theme that defines the standard token set).
 
