@@ -17,6 +17,22 @@ from the same tagged tree, so all three channels ship identical bytes.
 
 ## [Unreleased]
 
+### Added
+
+- **A workspace header now stands in for rows the list is holding back.** The
+  official session list keeps five idle sessions per workspace on screen and
+  holds the rest behind its overflow row, so a session that finished while the
+  user was away could be exactly the one taken off screen — and then nothing
+  visible said the workspace was worth opening. A workspace whose list is
+  holding rows back is marked `data-busy-held` and its header is raised from a
+  summary to the weight a marked session row uses; the phase each workspace last
+  reported is remembered under its official `workspace:<id>` row key, on the
+  `unreadHoldMinutes` clock, so the completion is still announced after its own
+  row is gone. A collapsed sub-workspace tree is treated the same way, because
+  there too the header is the only thing left on screen.
+- The folder glyph on a marked header now carries the phase colour, so the
+  state survives a truncated or blurred name.
+
 ### Changed
 
 - **The screenshots are now generated from the code they document.**
@@ -24,7 +40,8 @@ from the same tagged tree, so all three channels ship identical bytes.
   since before the five attention phases shipped, so the project page was still
   showing the single-state version: no urgency ranking, no workspace badges, no
   subagent chip, no selection hue. Both images are re-captured from the current
-  stylesheet and the current `paint()`.
+  stylesheet and the current `paint()`, and the light one now also shows a
+  workspace whose rows are held back.
 - `scripts/capture-screenshots.mjs` now produces them by reading the CSS and the
   functions out of `lib/client.js` itself and driving a fixture sidebar with the
   real `paint()`. Re-running it after an edit is the whole update procedure, so

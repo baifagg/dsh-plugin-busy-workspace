@@ -494,6 +494,46 @@ check("the memory records a phase and a dwell clock per row", () => {
   assert.match(clientSource, /if \(!seen\.has\(key\)\) settleWatch\.delete\(key\)/);
 });
 
+check("a workspace identity comes from the official row key, never from its label", () => {
+  const identity = new Function(
+    "SELECTOR",
+    `${extractFunction(clientSource, "groupIdentity")}
+     return groupIdentity;`,
+  )(SELECTOR);
+  const groupWith = (key) => ({ querySelector: () => ({ getAttribute: () => key }) });
+  assert.equal(identity(groupWith("workspace:42")), "workspace:42");
+  // No header, or a header without the key: no memory rather than a guess that
+  // could hand one workspace another one's remembered phase.
+  assert.equal(identity(groupWith("")), null);
+  assert.equal(identity({ querySelector: () => null }), null);
+});
+
+check("a workspace holding rows back keeps the phase it reported", () => {
+  // The official overflow control is the only signal that rows are out of
+  // sight, and its own aria-expanded says they still are.
+  assert.ok(
+    clientSource.includes('overflow: \'[data-row-key^="overflow:"]\''),
+    "the overflow control must be matched by its own stable row key",
+  );
+  assert.match(clientSource, /control\.getAttribute\("aria-expanded"\) !== "false"/);
+  assert.match(clientSource, /const holder = control\.closest\(SELECTOR\.group\)/);
+
+  // The remembered phase is written whenever a group does report one...
+  assert.match(clientSource, /if \(identity !== null\) groupMemory\.set\(identity, \{ summary, at: now \}\)/);
+  // ...reused only while rows are actually held back...
+  assert.match(clientSource, /else if \(isHeld && identity !== null\)/);
+  // ...and bounded by the same clock an unread completion is held for, so a
+  // remembered phase can never outlive the thing it reports.
+  assert.match(clientSource, /now - remembered\.at <= unreadMs/);
+  assert.match(clientSource, /const unreadMs = settings\.unreadHoldMinutes \* 60 \* 1000;/);
+  // A workspace that is gone takes its memory with it.
+  assert.match(clientSource, /if \(!liveGroups\.has\(key\)\) groupMemory\.delete\(key\)/);
+
+  // The held fact itself has to reach the DOM, or CSS cannot react to it.
+  assert.match(clientSource, /const HELD_ATTR = "data-busy-held"/);
+  assert.match(clientSource, /setAttr\(group, HELD_ATTR, isHeld \? "true" : "false"\)/);
+});
+
 console.log("client: styling contract");
 
 check("no hardcoded palette outside the documented fallbacks", () => {
@@ -554,6 +594,28 @@ check("a header badge names the state in words", () => {
   assert.match(clientSource, /pending: \{ mark: "pending", rank: 4, label: "待处理" \}/);
   assert.match(clientSource, /running: \{ mark: "running", rank: 3, label: "运行中" \}/);
   assert.match(clientSource, /unread: \{ mark: "unread", rank: 2, label: "已完成" \}/);
+});
+
+check("a header raises itself to the rows' weight when those rows are held back", () => {
+  const css = clientSource.match(/const CSS = `([\s\S]*?)`;/)[1];
+  // Only a workspace that is both marked and holding rows back is raised: the
+  // header is a summary everywhere else, and two equally loud signals for one
+  // fact read as clutter.
+  assert.match(css, /\[class\*="_groupSection"\]\[data-busy-workspace="true"\]\[data-busy-held="true"\]/);
+  const held = [...css.matchAll(/\[data-busy-held="true"\][^{]*\{([^}]*)\}/g)];
+  assert.ok(held.length >= 2, `expected both a fill and a bar rule, found ${held.length}`);
+  const fill = held[0][1];
+  // ...at exactly the weights a marked session row uses.
+  assert.match(fill, /var\(--bw-fill-alpha\) \* 100%/);
+  assert.match(fill, /var\(--bw-ring-alpha\) \* 100%/);
+  assert.match(held[1][1], /height: 26px/);
+  // A collapsed sub-workspace is the other way the rows leave the screen, and
+  // the official treeitem already says so.
+  assert.match(css, /:has\(> \[class\*="_projectRow"\]\[aria-expanded="false"\]\)/);
+
+  // The folder glyph is the one non-text shape on the header, so it carries the
+  // family colour whether or not anything is collapsed.
+  assert.match(css, /\[data-busy-workspace="true"\]\s*\n?\s*> \[class\*="_projectRow"\] \[class\*="_folder"\]/);
 });
 
 check("the badge counts the phase it names, not every phase combined", () => {

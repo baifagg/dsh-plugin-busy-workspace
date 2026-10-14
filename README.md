@@ -10,9 +10,9 @@ A DeepSeek Harness (`dsh`) Web GUI plugin that highlights running sessions and p
 
 ---
 
-![Five attention phases in one list, ranked: waiting, running, finished-unread, seen, and a quiet run marked but not promoted](assets/screenshot-1.png)
+![Five attention phases in one list, ranked: waiting, running, a workspace holding rows back, seen, and a quiet run marked but not promoted](assets/screenshot-1.png)
 
-*One list, five phases, ranked by urgency: waiting (amber) first, then running (blue, carrying its subagent chip), then finished-unread (green), then seen — the selected row, in the plugin's own violet — and last a run that went quiet (red), marked but deliberately not promoted. Every bar, tint, ring and badge here is the plugin's own CSS, driven by its own `paint()` over real `data-state` values. The list contents are a fixture and the workspace names are blurred, because a sidebar's real contents are per-installation; regenerate with `node scripts/capture-screenshots.mjs`.*
+*One list, five phases, ranked by urgency: waiting (amber) first, then running (blue, carrying its subagent chip), then finished-unread (green), then seen — the selected row, in the plugin's own violet — and last a run that went quiet (red), marked but deliberately not promoted. The green workspace is holding four sessions behind the official overflow row: the row that reported the completion is no longer on screen, and the header still names the state and still holds its place. Every bar, tint, ring, badge and chip here is the plugin's own CSS, driven by its own `paint()` over real `data-state` values. The list contents are a fixture and the workspace names are blurred, because a sidebar's real contents are per-installation; regenerate with `node scripts/capture-screenshots.mjs`.*
 
 ---
 
@@ -214,6 +214,11 @@ Three selector details are load-bearing:
 - **The relative-time label is read back.** It is a direct child of the row, and parsing it is what makes every age decision above decidable. A row waiting on the user shows the pending kind there rather than an age and parses to null — which is correct, since a waiting row is never judged by age; that same word is reused as the workspace badge text.
 
 Promotion uses CSS `order` on a flex list column. The official list is a plain block scroller, so the plugin first marks the **parent element of the workspace groups** and lets CSS turn that into a flex column; reordering nodes directly would fight React, whereas an `order` value is a purely presentational hint the renderer never reads back. **Ranking rides the same mechanism**: groups tagged `data-busy-rank` 4/3/2/1 receive `order: -4/-3/-2/-1`, so the most urgent is always first. A list with nothing promoted is left untouched.
+
+**A header outlives the rows it speaks for.** The official list keeps five idle sessions on screen per workspace and holds the rest behind an overflow row, so a session that finished while you were away can be one of the held ones — and then no visible row can say the workspace is worth opening. Two things cover that:
+
+- **The header is raised to the rows' weight.** A workspace whose list is holding rows back is marked `data-busy-held`, and its header stops being a summary: it takes the same fill, the same ring and the same bar weight a marked session row uses, because it is no longer standing in front of anything the user can see. The colour moves onto the folder glyph too, which is the one shape on the row that is not text. A collapsed sub-workspace tree — the official row is a `treeitem` and sets `aria-expanded` itself — is treated the same way, for the same reason.
+- **The last phase is remembered.** Each workspace's most recent phase is kept under its official `workspace:<id>` row key, on the same `unreadHoldMinutes` clock an unread completion is held for, so a completion that arrived while its row was still visible is still announced after the row is taken away. Nothing is invented: a workspace that never reported a phase keeps none, and one that leaves the list takes its memory with it.
 
 **Interrupted (red) is a derived state.** No session-row field reports a failure, so the plugin reads "the dot still says `ongoing` but the last activity is older than `staleRunMinutes`" as a run that died, and draws it red rather than continuing to claim it is live. Such a row does not promote its workspace either, so the list never reorders itself for a stale mark from days ago.
 

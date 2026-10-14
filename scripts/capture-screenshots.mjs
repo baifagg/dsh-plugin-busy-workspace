@@ -109,7 +109,7 @@ const attrLines = [...src.matchAll(/const ([A-Z_]+_ATTR) = ("[^"]*");/g)]
 /** paint() 依赖的纯函数，按依赖顺序列出。 */
 const PAINT_DEPS = [
   'statusStateOf', 'ageOf', 'pendingWordOf', 'isSelected', 'subagentsOf',
-  'groupOf', 'rowKey', 'assess', 'markOf', 'summarise', 'paint',
+  'groupOf', 'groupIdentity', 'rowKey', 'assess', 'markOf', 'summarise', 'paint',
 ];
 
 // ---------------------------------------------------------------- 演示场景
@@ -142,9 +142,13 @@ const GROUPS = [
     { title: '带子智能体的运行', dot: 'ongoing', time: '2分钟', sub: '3 个子智能体运行中' },
   ] },
   { name: 'Kjian 后台', rows: [
+    // 这一行在这一轮里会被官方列表收起来，用来演示"收起后文件夹行仍然报状态"。
     { title: '刚完成的会话', dot: 'done', time: '刚刚' },
   ] },
 ];
+
+/** 被官方列表收起来的会话数，只用于那个"展开其余 N 个会话"按钮上的数字。 */
+const HELD_BEHIND = { 'Kjian 后台': 4 };
 
 // ---------------------------------------------------------------- 主题 token
 /*
@@ -213,9 +217,18 @@ const rowHtml = (r) => `
     <span class="hIlkoa_time">${r.time}</span>
   </div>`;
 
+/**
+ * 官方会话列表的溢出控制：一个工作区里超过 5 个非运行会话时，其余被收起，
+ * 底部出现这个按钮。插件读它的 data-row-key 与 aria-expanded，据此知道
+ * "这个工作区有行被藏着"，从而把文件夹行抬到与会话行同级。
+ */
+const overflowHtml = (groupName, n) => `
+  <button type="button" class="hIlkoa_sessionOverflow" data-row-key="overflow:${groupName}"
+          aria-expanded="false">展开其余 ${n} 个会话</button>`;
+
 const groupHtml = (g) => `
   <div class="_9lTDKa_groupSection">
-    <div class="hIlkoa_projectRow">
+    <div class="hIlkoa_projectRow" data-row-key="workspace:${g.name}" role="treeitem" aria-expanded="true">
       <span class="hIlkoa_slot"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M1.5 3.5A1.5 1.5 0 013 2h3l1.5 2H13a1.5 1.5 0 011.5 1.5v6A1.5 1.5 0 0113 13H3a1.5 1.5 0 01-1.5-1.5v-8z"/></svg></span>
       <div class="hIlkoa_projectText"><span class="hIlkoa_title${REDACT_WORKSPACE_NAMES ? ' is-redacted' : ''}">${g.name}</span></div>
     </div>
@@ -258,6 +271,11 @@ justify-content:center;display:inline-flex}
 .hIlkoa_time{color:var(--dsw-alias-label-tertiary);flex:none;font-size:10.5px;line-height:16px;
 font-variant-numeric:tabular-nums}
 .hIlkoa_visuallyHidden{clip:rect(0 0 0 0);white-space:nowrap;width:1px;height:1px;position:absolute;overflow:hidden}
+/* 官方会话溢出控制：只在有行被收起时出现，左对齐到会话行的标题缩进。 */
+.hIlkoa_sessionOverflow{display:block;width:100%;text-align:start;background:none;border:none;
+color:var(--dsw-alias-label-tertiary);font:inherit;font-size:12px;line-height:16px;height:26px;
+cursor:pointer;padding:0 8px;padding-inline-start:calc(8px + var(--dsh-workspace-indent,0px) + 20px)}
+.hIlkoa_sessionOverflow:hover{color:var(--dsw-alias-label-secondary)}
 ._9lTDKa_groupSection{position:relative}
 ._9lTDKa_groupSection+._9lTDKa_groupSection{margin-top:4px}
 ._9lTDKa_groupSection>*+*{margin-top:2px}`;
@@ -278,6 +296,7 @@ const PHASE = ${JSON.stringify(PHASE)};
 const AGE_UNITS = ${AGE_UNITS_SOURCE};
 ${attrLines}
 const settleWatch = new Map();
+const groupMemory = new Map();
 const KNOWN_STATES = new Set(${KNOWN_STATES});
 const setAttr=(el,a,v)=>{ if(el.getAttribute(a)!==v) el.setAttribute(a,v); };
 const dropAttr=(el,a)=>{ if(el.hasAttribute(a)) el.removeAttribute(a); };
@@ -300,10 +319,22 @@ seenRow.setAttribute('aria-selected','true');
 seenRow.classList.add('hIlkoa_selected');
 paint(settings, memory);
 
+// 第三步是这次修复本身：官方列表把一个工作区的会话收起来了。行从 DOM 里
+// 消失，只剩一个"展开其余 N 个会话"按钮 —— 于是再没有任何可见的行能说明
+// 这个工作区有东西完成了。插件在这一遍必须靠记下的阶段继续把话说出来。
+const heldRow = [...document.querySelectorAll(SELECTOR.sessionRow)]
+  .find((r)=>r.getAttribute('data-row-key')==='session:刚完成的会话');
+const heldGroup = heldRow.parentElement;
+heldRow.remove();
+heldGroup.insertAdjacentHTML('beforeend',
+  '<button type="button" class="hIlkoa_sessionOverflow" data-row-key="overflow:Kjian 后台" aria-expanded="false">展开其余 ${HELD_BEHIND['Kjian 后台']} 个会话</button>');
+paint(settings, memory);
+
 window.__report = {
   order: [...document.querySelectorAll(SELECTOR.group)].map((g)=>({
     name: g.querySelector(SELECTOR.projectRow+' '+SELECTOR.title).textContent.trim(),
     rank: g.getAttribute(RANK_ATTR),
+    held: g.getAttribute(HELD_ATTR),
     badge: g.querySelector(SELECTOR.projectRow).getAttribute(LABEL_ATTR),
     count: g.querySelector(SELECTOR.projectRow).getAttribute(COUNT_ATTR),
     multi: g.querySelector(SELECTOR.projectRow).getAttribute(MULTI_ATTR),

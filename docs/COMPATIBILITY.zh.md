@@ -126,6 +126,9 @@ DeepSeek Harness 自己会给插件设闸。机制在 `@deepseek-ai/dsh-app-boot
 | 会话行状态点上的 `data-state`，取值 `warning` / `ongoing` / `done` / `idle` | 整个注意力模型 | **高**——名字变了就什么都不标。查找还要求该原语自身的 `aria-hidden="true"`，并把取值限制在上面四个，所以同一格子里别的插件塞进来的 `data-state` 不会被误读 |
 | `[class*="_sessionRow"]`、`[class*="_groupSection"]`、`[class*="_projectRow"]`、`[class*="_title"]`、`[class*="_slot"]`、`[class*="_visuallyHidden"]`、`[class*="_time"]` | 定位行、分组与标签 | **高**——按构建期哈希类名的稳定后缀匹配，两边任一侧改名都会失配 |
 | 会话行上的 `aria-selected` | 判断"你正在读这一行"，这是 `seen` 阶段仍被置顶的依据 | 中——没有它，`seen` 行会退化为按 `seenHoldMinutes` 计时，而不是"只要你停在上面就一直在" |
+| 工作区标题行上的 `data-row-key="workspace:<id>"` | 工作区"记住的阶段"存在哪个键下 | 中——没有它就不保留组级记忆，被收起行的那些工作区只能报告仍在屏上的行 |
+| `data-row-key^="overflow:"` 及它自身的 `aria-expanded` | 判断某个工作区的列表正在藏行，据此把文件夹行抬到会话行同级、并让记忆里的阶段顶上来 | 低——没有它文件夹行仍是"摘要"，被收起的完成在行离屏后不再被报出 |
+| 工作区标题行自身的 `aria-expanded` | 折叠的子工作区树，此时文件夹行是屏上唯一的东西 | 低——没有它，折叠的树沿用普通文件夹行权重 |
 | 行内作为直接子节点的相对时间标签，按已发布语言 | 所有按时间做的判断（`unreadHoldMinutes`、`seenHoldMinutes`、`staleRunMinutes`） | 中——标签解析不出来时，时间判定退化为"没有时间"，于是 `warning` 与 `unread` 继续置顶，且永远不会凭空判出 `interrupted` |
 | 行首单元格里的隐藏状态标签（`子智能体` / `subagent(s)`、`待审批` / `Approval` 等） | 子智能体计数 chip 与工作区徽标的措辞 | 低——读不到就不画 chip、不写那个词 |
 | `window.__ModuleLoader__.load({ id, factory })` + `dsh.client.platform: "web"` | 客户端半边能否加载 | **高**——这是官方客户端 bundle 契约；它变了，bundle 根本不会执行 |
